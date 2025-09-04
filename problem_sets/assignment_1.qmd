@@ -26,7 +26,7 @@ editor: visual
 
 To start, load all the required packages with the following code. Install them if they are not installed yet.
 
-```         
+```{r}
 library(tidyverse)
 library(knitr)
 ```
