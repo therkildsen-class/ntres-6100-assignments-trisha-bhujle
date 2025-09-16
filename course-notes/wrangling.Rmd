@@ -1,0 +1,77 @@
+---
+title: "Wrangling"
+author: "Trisha Bhujle"
+date: "2025-09-16"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r}
+library(tidyverse)
+# install.packages("skimr")
+library(skimr)
+```
+
+Read in corona .csv
+```{r} 
+coronavirus <- read_csv('https://raw.githubusercontent.com/RamiKrispin/coronavirus/master/csv/coronavirus.csv')
+
+view(coronavirus)
+summary(coronavirus)
+skim(coronavirus)
+head(coronavirus)
+tail(coronavirus)
+
+coronavirus$cases
+head(coronavirus$cases)
+```
+
+
+Practice the filter function.
+```{r}
+?filter
+filter(coronavirus, cases > 0)
+
+filter(coronavirus, country == "US") # ONLY USA
+coronavirus_us <- filter(coronavirus, country == "US")
+
+filter(coronavirus, country != "US") # NOT USA
+
+# The boolean operator | means "or"!
+filter(coronavirus, country == "US" | country == "Canada") # USA or Canada
+
+# %in% is a substitute for the == sign!
+filter(coronavirus, country %in% c("US", "Canada")) # USA or Canada
+
+# The boolean operator & means "and", but you can also just use a comma!
+filter(coronavirus, country == "US" & type == "death")
+filter(coronavirus, country == "US", type == "death")
+
+# Subset the data to only show the death counts in 3 European countries on September 16, 2021.
+filter(coronavirus, country %in% c("France", "Germany", "Italy"), type == "death", date == "2021-09-16") 
+# OR 
+filter(coronavirus, country %in% c("France", "Germany", "Italy") & type == "death" & date == "2021-09-16") 
+```
+
+
+Practice the select function.
+```{r} 
+# Only keep 4 columns
+select(coronavirus, date, cases, country, type)
+
+# Drop a column
+select(coronavirus, -province)
+
+# Create a new dataframe including only the country, lat, and long variables, listed in this order. Now make one listed in order lat, long, country.
+select(coronavirus, country, lat, long)
+select(coronavirus, lat, long, country)
+
+# Create a eew dataframe with just variables date through cases. 
+select(coronavirus, date:cases)
+select(coronavirus, 1:7)
+```
+
+
+
+
