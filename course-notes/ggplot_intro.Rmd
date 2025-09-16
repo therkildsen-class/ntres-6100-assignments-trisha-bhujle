@@ -1,0 +1,91 @@
+---
+title: "ggplot_intro"
+author: "Trisha Bhujle"
+date: "2025-09-11"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+Load your data sets.
+```{r} 
+library(tidyverse)
+
+# We are using the "mpg" dataset. When you run this, you should get a tibble (like an upgraded data frame).
+mpg
+
+# Putting a question mark before the dataset will take you to details about the dataset, when the data was collected, etc.
+?mpg
+
+# Let's try a regular data frame instead of a tibble.
+cars
+?cars
+
+# Use the view function to pull up your data in a spreadsheet.
+View(mpg)
+
+# I want to find the first 6 (default number), first 4, and last 6 entries in the cars data frame.
+head(cars)
+head(cars, 4)
+tail(cars)
+```
+
+Make a ggplot of engine displacement versus highway mileage. 
+```{r} 
+# Make a ggplot with closed circles. 
+ggplot(data = mpg) + 
+  geom_point(mapping = aes(x = displ, y = hwy, color = class, size = cyl))
+
+# Make a ggplot with open circles. 
+ggplot(data = mpg) + 
+  geom_point(mapping = aes(x = displ, y = hwy, color = class, size = cyl), shape = 1)
+
+# Add a trend line, and consolidate the code.
+ggplot(data = mpg, mapping = aes(x = displ, y = hwy)) + 
+  geom_point(mapping = aes(color = class, size = cyl), shape = 1) +
+  geom_smooth()
+
+# Split your plot by year.
+ggplot(data = mpg, mapping = aes(x = displ, y = hwy)) + 
+  geom_point(mapping = aes(color = class, size = cyl), shape = 1) +
+  geom_smooth() + 
+  facet_wrap(~ year, nrow = 2) # If you remove the nrow = 2, you will get two columns as your default.
+
+# Change the theme of your graph.
+ggplot(data = mpg, mapping = aes(x = displ, y = hwy)) + 
+  geom_point(mapping = aes(color = class, size = cyl), shape = 1) +
+  geom_smooth() + 
+  facet_wrap(~ year, nrow = 2) + 
+  theme_bw()
+
+# Split your plot by class. 
+ggplot(data = mpg, mapping = aes(x = displ, y = hwy)) +  
+  geom_point(mapping = aes(color = displ, size = hwy)) + 
+  facet_wrap(~ class)
+               
+# To learn more about ggplot aesthetics...
+?geom_point
+```
+
+Make a scatterplot of highway mileage versus the number of cylinders.
+```{r} 
+# Make a plot where points are colored by year. 
+ggplot(data = mpg) + 
+  geom_point(mapping = aes(x = cyl, y = hwy, color = year))
+
+# Make a plot where all points are blue. 
+ggplot(data = mpg) + 
+  geom_point(mapping = aes(x = cyl, y = hwy), color = "blue")
+```
+
+Make a scatterplot of class versus drv to see why it is a BAD scatterplot.
+```{r} 
+ggplot(data = mpg) + 
+  geom_point(mapping = aes(x = class, y = drv))
+```
+
+
+
+
+
+

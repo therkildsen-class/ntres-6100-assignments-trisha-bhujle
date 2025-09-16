@@ -12,8 +12,8 @@ Please use the following table to grade the student's assignment:
 
 | Assignment# | Fully completed | Partially completed | Not completed |
 |:-----------:|:---------------:|:-------------------:|:-------------:|
-|      1      |        X         |                     |               |
-|      2      |        X         |                     |               |
+|      1      |        X        |                     |               |
+|      2      |        X        |                     |               |
 |      3      |                 |                     |               |
 |      4      |                 |                     |               |
 |      5      |                 |                     |               |
@@ -22,4 +22,10 @@ Please use the following table to grade the student's assignment:
 |      8      |                 |                     |               |
 |      9      |                 |                     |               |
 
-Assignment 2: https://github.com/trisha-bhujle/HWC-practice.git
+Assignment 2: <https://github.com/trisha-bhujle/HWC-practice.git>
+
+Assignment 3:
+
+-   Website:
+
+-   Repo:
