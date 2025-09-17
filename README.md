@@ -26,6 +26,6 @@ Assignment 2: <https://github.com/trisha-bhujle/HWC-practice.git>
 
 Assignment 3:
 
--   Website:
+-   Website: https://trisha-bhujle.github.io/assignment-3-trb238/
 
--   Repo:
+-   Repo: https://github.com/trisha-bhujle/assignment-3-trb238.git
