@@ -1,0 +1,345 @@
+---
+title: "Wrangling"
+author: "Trisha Bhujle"
+date: "2025-09-16"
+output: html_document
+editor_options: 
+  chunk_output_type: inline
+---
+
+```{r}
+library(tidyverse)
+# install.packages("skimr")
+library(skimr)
+```
+
+### Coronavirus Data 
+
+Read in corona.csv
+
+```{r}
+coronavirus <- read_csv('https://raw.githubusercontent.com/RamiKrispin/coronavirus/master/csv/coronavirus.csv')
+
+view(coronavirus)
+summary(coronavirus)
+skim(coronavirus)
+head(coronavirus)
+tail(coronavirus)
+
+coronavirus$cases
+head(coronavirus$cases)
+```
+
+Practice the filter function to subset the *rows/observations* in the data frame.
+
+```{r}
+?filter
+filter(coronavirus, cases > 0)
+
+filter(coronavirus, country == "US") # ONLY USA
+coronavirus_us <- filter(coronavirus, country == "US") # Save your result as an object.
+
+filter(coronavirus, country != "US") # NOT USA
+
+# The boolean operator | means "or"!
+filter(coronavirus, country == "US" | country == "Canada") # USA or Canada
+
+# %in% is a substitute for the == sign!
+filter(coronavirus, country %in% c("US", "Canada")) # USA or Canada
+
+# The boolean operator & means "and", but you can also just use a comma!
+filter(coronavirus, country == "US" & type == "death")
+filter(coronavirus, country == "US", type == "death")
+
+# Subset the data to only show the death counts in 3 European countries on September 16, 2021.
+filter(coronavirus, country %in% c("France", "Germany", "Italy"), type == "death", date == "2021-09-16") 
+# OR 
+filter(coronavirus, country %in% c("France", "Germany", "Italy") & type == "death" & date == "2021-09-16")
+```
+
+Practice the select function to subset the *columns* in the data frame.
+
+```{r}
+# Only keep 4 columns
+select(coronavirus, date, cases, country, type)
+
+# Drop a column
+select(coronavirus, -province)
+
+# Create a new data frame including only the country, lat, and long variables, listed in this order. Now make one listed in order lat, long, country.
+select(coronavirus, country, lat, long)
+select(coronavirus, lat, long, country)
+
+# Create a new data frame with just variables date through cases. 
+select(coronavirus, date:cases)
+select(coronavirus, 1:7)
+select(coronavirus, contains('y')) # Select all columns whose names contain the letter "y"
+select(coronavirus, contains('y'), everything()) # Put all columns whose names contain the letter "y" at the front, but still keep the remainder of the columns 
+```
+
+Filter to US records, and remove irrelevant columns.
+
+```{r}
+coronavirus_us <- filter(coronavirus, country == "US") 
+select(coronavirus_us, -lat, -long, -province) # Remove the lat, long, and province columns.
+```
+
+This is the NEW pipe operator for r: \|\> (Shift + Command + m) This is the OLD pipe operator for r, that you learned in earlier classes: %\>%
+
+Practice with pipe operators to clean the US records. Pipe operators enable you to avoid creating intermediate variables, by using whatever is on the LEFT side of the operator as the first argument for whatever is on the RIGHT side of the pipe.
+
+```{r}
+coronavirus |> 
+  filter(country == "US") |> 
+  select(-lat, -long, -province)
+```
+
+Practice with pipe operators to subset the coronavirus dataset to only include daily death counts in the US, Canada, and Mexico and only include the following variables in this order: country, date, cases. Then, pipe that directly into ggplot.
+
+```{r}
+coronavirus |> 
+  filter(type == "death", country %in% c("US", "Canada", "Mexico")) |>
+  select(country, date, cases) |> 
+  ggplot() + 
+  geom_line(mapping = aes(x = date, y = cases, color = country))
+# Don't pipe within the ggplot function—use a plus sign instead! 
+```
+
+### Vaccine Data
+
+Read in the vaccine dataset.
+
+```{r}
+vacc <- read_csv("https://raw.githubusercontent.com/RamiKrispin/coronavirus/main/csv/covid19_vaccine.csv")
+View(vacc)
+```
+
+Practice the mutate function with a new dataset.
+
+```{r} 
+# Find the max vaccination date
+max(vacc$date)
+
+vacc |> 
+  filter(date == max(date)) |> 
+  select(country_region, continent_name, people_at_least_one_dose, population) |> 
+  mutate(vaxxrate = round(people_at_least_one_dose / population, 2)) # Vaxxrate is the new variable I want to create. Use only one equal sign because instead of matching, I'm assigning vaxxrate to a new value. I'm also using the round function to round my outputs to 2 decimal places.
+```
+
+
+Add a new variable that shows how many doses of vaccine on average have been distributed per person who have gotten at least one dose for each country. First look at the patterns across all countries, then only show data for countries that have distributed more than 200 million doses. 
+
+```{r} 
+# Patterns across all countries
+vacc |> 
+  filter(date == max(date)) |> 
+  select(country_region, continent_name, doses_admin, people_at_least_one_dose, population) |> 
+  mutate(avgdose = round(doses_admin / people_at_least_one_dose, 2)) |> 
+  ggplot() + 
+  geom_histogram(mapping = (aes(x = avgdose)))
+
+# Patterns across countries that have distributed more than 200 million doses
+vacc |> 
+  filter(date == max(date), doses_admin > 200000000) |> 
+  select(country_region, continent_name, doses_admin, people_at_least_one_dose, population) |> 
+  mutate(avgdose_2 = round(doses_admin / people_at_least_one_dose, 2)) 
+
+# OR
+
+vacc |> 
+  filter(date == max(date)) |> 
+  select(country_region, continent_name, doses_admin, people_at_least_one_dose, population) |> 
+  mutate(avgdose_2 = round(doses_admin / people_at_least_one_dose, 2)) |> 
+  filter(doses_admin > 200000000) # This option is less preferred
+
+# Only filter to countries with at least 3 doses per vaccinated person, and arrange their average doses in order from greatest to least.
+vacc |> 
+  filter(date == max(date)) |> 
+  select(country_region, continent_name, doses_admin, people_at_least_one_dose, population) |> 
+  mutate(avgdose = round(doses_admin / people_at_least_one_dose, 2)) |> 
+  filter(avgdose > 3) |> 
+  arrange(-avgdose)
+# Use the - sign within the arrange function to go from highest to lowest, and exclude the - sign to go from lowest to highest.
+```
+
+
+In how many countries do >90% of the population have at least one dose and which five countries have the highest vaccination rates (proportion of their population given at least one dose), according to this dataset?
+
+```{r} 
+# >90% with at least one dose
+vacc |> 
+  filter(date == max(date)) |> 
+  select(country_region, continent_name, people_at_least_one_dose, population) |> 
+  mutate(dosed_people = people_at_least_one_dose / population) |> 
+  filter(dosed_people > 0.9) |> 
+  arrange(-dosed_people)
+
+# highest vaccination rates: look at the top five countries in the tibble!
+vacc |> 
+  filter(date == max(date)) |> 
+  select(country_region, continent_name, people_at_least_one_dose, population) |> 
+  mutate(dosed_people = people_at_least_one_dose / population) |> 
+  filter(dosed_people > 0.9) |> 
+  arrange(-dosed_people) |> 
+  head(5) 
+```
+
+
+### Summarize
+```{r}
+# Find the sum of confirmed coronavirus cases across all countries. 
+coronavirus |> 
+  filter(type == "confirmed") |> 
+  summarize(sum = sum(cases))
+
+# Find the sum of confirmed coronavirus cases for each country separately.
+coronavirus |> 
+  filter(type == "confirmed") |> 
+  group_by(country) |> 
+  summarize(sum = sum(cases))
+
+# Find the country with the highest number of cases.
+coronavirus |> 
+  filter(type == "confirmed") |> 
+  group_by(country) |> 
+  summarize(total = sum(cases)) |>
+  arrange(-total)
+
+# Find a count of observations for each group.
+coronavirus |> 
+  filter(type == "confirmed") |> 
+  group_by(country) |> 
+  summarize(total = sum(cases),
+            n = n()) |>
+  arrange(-total)
+
+# Group by date and type of case. 
+coronavirus |>
+  group_by(date, type) |> 
+  summarize(total = sum(cases))
+
+# Only look type of case for 01/01/2023. 
+coronavirus |>
+  group_by(date, type) |> 
+  summarize(total = sum(cases)) |>
+  filter(date == "2023-01-01")
+
+# Which day has had the highest total death count globally in this dataset? 
+coronavirus |>
+  filter(type == "death") |>
+  group_by(date) |> 
+  summarize(total = sum(cases)) |>
+  arrange(-total)
+
+# OR 
+coronavirus |>
+  group_by(date, type) |> 
+  summarize(total = sum(cases)) |>
+  filter(type == "death") |>
+  arrange(-total)
+
+# Find the total number of cases per type.
+coronavirus |>
+  group_by(type) |>
+  summarize(cases = sum(cases))
+
+# Find the number of confirmed cases globally for each day. Pipe that directly into a ggplot.
+gg_base <- coronavirus |>
+  filter(type == "confirmed") |>
+  group_by(date) |>
+  summarize(total_cases = sum(cases)) |> 
+  ggplot(mapping = aes(x = date, y = total_cases))
+```
+
+Add layers to gg_base from the previous question.
+```{r}
+gg_base + 
+  geom_line()
+
+gg_base + 
+  geom_point()
+
+gg_base + 
+  geom_col(color = "red")
+
+gg_base + 
+  geom_area(color = "red", fill = "red")
+
+gg_base + 
+  geom_line(
+    color = "purple",
+    linetype = "longdash"
+  )
+
+?linetype
+
+gg_base + 
+  geom_point(
+    color = "purple",
+    shape = 17, 
+    size = 1, 
+    alpha = 0.5
+  )
+
+# Use alpha for transparency!
+?shape
+
+# The following graph is redundant because it depicts total cases in 3 different ways: the y-axis, color, and point size.
+gg_base + 
+  geom_point(mapping = aes(size = total_cases, color = total_cases),
+    alpha = 0.5
+  ) + 
+  theme_minimal() + 
+  theme(legend.background = element_rect(
+    fill = "lemonchiffon",
+    color = "grey50", 
+    linewidth = 0.5
+  ))
+
+?theme
+?legend.background
+
+# Get rid of the legend entirely.
+gg_base + 
+  geom_point(mapping = aes(size = total_cases, color = total_cases),
+    alpha = 0.5
+  ) + 
+  theme_minimal() + 
+  theme(legend.position = "none")
+
+# Add axis labels. Mess with the str_c function to add the most recent date to the title and the sep() function to make sure the title is appropriately spaced..
+gg_base + 
+  geom_point(mapping = aes(size = total_cases, color = total_cases),
+    alpha = 0.5
+  ) + 
+  theme_minimal() + 
+  theme(legend.position = "none") + 
+  labs(
+    x = "Date", 
+    y = "Total Confirmed Cases",
+    title = str_c("Daily Counts of New Coronavirus Cases", max(coronavirus$date), sep = " "),
+    subtitle = "Global Sums"
+  )
+```
+
+
+PRACTICE: Generate a plot with a separate line showing the daily reports of new confirmed cases in a subset of the 5 countries with the highest counts.
+```{r} 
+top5 <- coronavirus |>
+  filter(type == "confirmed") |>
+  group_by(country) |>
+  summarize(total = sum(cases)) |>
+  arrange(-total) |>
+  head(5) |>
+  pull(country) # Make sure you're only saving the country NAMES.
+
+# To be continued on 9/25! 
+```
+
+
+
+
+
+
+
+

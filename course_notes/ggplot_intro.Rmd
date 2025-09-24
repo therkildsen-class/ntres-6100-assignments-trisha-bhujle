@@ -84,8 +84,36 @@ ggplot(data = mpg) +
   geom_point(mapping = aes(x = class, y = drv))
 ```
 
+Now let's practice saving plots. 
+```{r} 
+ggplot(data = mpg, mapping = aes(x = displ, y = hwy)) + 
+  geom_point(mapping = aes(color = class, size = cyl), shape = 1) +
+  geom_smooth() + 
+  facet_wrap(~ year, nrow = 2) + 
+  theme_minimal()
 
+# Save your file in the "plots" folder. Mess around with changing the file sizes. 
+ggsave(filename = "plots/hwy_vs_displ.png")
+ggsave(filename = "plots/hwy_vs_displ.jpg")
+ggsave(filename = "plots/hwy_vs_displ.pdf", width = 8, height = 4)
 
+# Pull up the documentation. 
+?ggsave
+```
 
+Now let's practice saving plots when the plots are assigned a variable.
+```{r} 
+plot1 <- ggplot(data = mpg, mapping = aes(x = displ, y = hwy)) + 
+  geom_point(mapping = aes(color = class, size = cyl), shape = 1) +
+  geom_smooth() + 
+  facet_wrap(~ year, nrow = 2) + 
+  theme_bw()
 
+plot1
 
+# Save your file in the "plots" folder. Specify which plot you want to save (this is more useful if you are making multiple plots) 
+ggsave(filename = "plots/hwy_vs_displ.pdf", plot = plot1, width = 8, height = 4)
+
+# You also don't need the function names!
+ggsave("plots/hwy_vs_displ.pdf", plot1, width = 8, height = 4)
+```
