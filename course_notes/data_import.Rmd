@@ -1,0 +1,81 @@
+---
+title: "data_import"
+author: "Trisha Bhujle"
+date: "2025-09-30"
+output: html_document
+---
+
+```{r} 
+install.packages("readxl") 
+install.packages("googlesheets4")
+install.packages("janitor") # For cleaning up column names
+library(tidyverse)
+library(readxl)
+library(googlesheets4)
+library(janitor)
+```
+
+Import the Lord of the Rings dataset.
+```{r} 
+lotr <- read_csv("https://raw.githubusercontent.com/jennybc/lotr-tidy/master/data/lotr_tidy.csv")
+```
+
+Write in the file so that it'll show up as a text file on your computer. Add it to the "data" folder in your course_notes folder on your computer.
+```{r} 
+write_csv(lotr, file = "data/lotr.csv")
+```
+
+Read in the file from your local disc. 
+```{r} 
+lotr <- read_csv("data/lotr.csv")
+
+# If you wanted to skip a line of your data, you could use "skip = line #". If you have comments on certain lines of your data, you could say comment = "#".
+# Remember, you can also type getwd() into the console to figure out where your files are stored!
+```
+
+Read a file from Excel. You'll not ethat if an Excel spreadsheet has multiple tabs, only the first tab will be loaded in by default.
+```{r} 
+lotr_excel <- read_xlsx("data/data_lesson11.xlsx")
+
+# Now try loading in the second tab. 
+lotr_exceltab2 <- read_xlsx("data/data_lesson11.xlsx", sheet = "FOTR")
+```
+
+
+Read a file from Google Sheets.
+```{r} 
+gs4_deauth() # Turn off the authorization requirements so that you can read in the file and there are no restrictions on access to the sheet.
+lotr_gs <- read_sheet("https://docs.google.com/spreadsheets/d/1X98JobRtA3JGBFacs_JSjiX-4DPQ0vZYtNl_ozqF6IE/edit#gid=754443596")
+
+# Read in only the second sheet ("FOTR")
+lotr_gs_FOTR <- read_sheet("https://docs.google.com/spreadsheets/d/1X98JobRtA3JGBFacs_JSjiX-4DPQ0vZYtNl_ozqF6IE/edit#gid=754443596", sheet = "FOTR")
+
+# Read in only the final sheet ("deaths"), and input the range of cells you want to import from.
+lotr_gs_deaths <- read_sheet("https://docs.google.com/spreadsheets/d/1X98JobRtA3JGBFacs_JSjiX-4DPQ0vZYtNl_ozqF6IE/edit#gid=754443596", sheet = "deaths", range = "A5:F15")
+```
+
+R doesn't like spaces in column names and will automatically put backticks around those names. Let's clean up the column names!
+```{r}
+msa <- read_tsv("https://raw.githubusercontent.com/nt246/NTRES-6100-data-science/main/datasets/janitor_mymsa_subset.txt")
+
+# Automate the changing of variable names.
+colnames(msa)
+msa_clean <- clean_names(msa)
+cbind(colnames(msa), colnames(msa_clean)) # Put column names side by side to see how they changed.
+# The default is underscores between each term, but if you use "case = XYZ" after "msa" in the clean_names function, you can use other separators as well! For example: msa_clean <- clean_names(msa, case = "upper_camel")
+```
+
+Mess with other cleaning tools.
+```{r} 
+# Parse out only the number from a text string. 
+parse_number("$100")
+parse_number("It costs $100")
+parse_number("80%")
+```
+
+
+
+
+
+
+

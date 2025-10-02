@@ -1,0 +1,100 @@
+---
+title: "tidy_data"
+author: "Trisha Bhujle"
+date: "2025-09-25"
+output: html_document
+---
+
+```{r} 
+library(tidyverse)
+```
+
+```{r} 
+# Use a dataset that comes with R. 
+table1
+?table1
+# table1 is the only one that is actually in tidy format! 
+
+table2
+
+table3
+
+table4a
+
+table4b
+```
+
+Create a new variable in Table 1. 
+```{r} 
+# Rate of cases for every 10000 people. 
+table1 |>
+  mutate(rate = cases/population * 10000)
+
+# Find the total number of cases for each of the two years.
+table1 |>
+  group_by(year) |>
+  summarize(total = sum(cases))
+ 
+#  
+table1 |>
+  ggplot(mapping = aes(x = year, y = cases)) + 
+  geom_line()
+```
+
+Use Pivot functions to reshape the data into a tidy format.
+```{r} 
+# Clean table 4a.
+table4a |>
+  pivot_longer(c(`1999`, `2000`), names_to = "year", values_to = "cases")
+
+# Clean table 4b.
+table4b |>
+  pivot_longer(c(`1999`, `2000`), names_to = "year", values_to = "population")
+
+# Clean table2.
+table2 |>
+  pivot_wider(names_from = type, values_from = count)
+
+# Clean table3. In this table, each cell in the "rate" column is NOT a single value! 
+table3 |> 
+  separate(rate, into = c("cases", "population"), sep = "/", convert = TRUE)
+# Use convert = TRUE because if you don't, the cases and population variables will be in character form rather than integer form! 
+
+table5 <- table3 |>
+  separate(year, into = c("century", "year"), sep = 2)
+# sep = 2, means the "year" column will be separated at the second character. 
+
+table5 |>
+  unite(fullyear, century, year, sep = "")
+# Use sep = "" to make sure that there is nothing separating the two numbers when you combine them.
+```
+
+# The course website has Lords of the Rings data you can use for practice! 
+
+
+### Take a look at the Coronavirus Dataset, which is ALREADY in a tidy format! 
+```{r} 
+coronavirus <- read_csv('https://raw.githubusercontent.com/RamiKrispin/coronavirus/master/csv/coronavirus.csv')
+
+view(coronavirus)
+```
+
+```{r} 
+coronavirus |>
+  filter(country == "US", cases >= 0) |>
+  ggplot(aes(x = date, y = cases, color = type)) + 
+  geom_line()
+```
+
+Try widening the dataset. 
+```{r} 
+coronavirus |> 
+  group_by(country, type) |>
+  summarize(total_cases = sum(cases)) |>
+  pivot_wider(names_from = type, values_from = total_cases) |> 
+  ggplot(aes(x = confirmed, y = death)) + 
+  geom_label(aes(label = country))
+```
+
+
+

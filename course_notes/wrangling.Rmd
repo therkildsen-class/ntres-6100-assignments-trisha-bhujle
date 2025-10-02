@@ -325,15 +325,24 @@ gg_base +
 
 PRACTICE: Generate a plot with a separate line showing the daily reports of new confirmed cases in a subset of the 5 countries with the highest counts.
 ```{r} 
-top5 <- coronavirus |>
+# First, find the top 5 countries and save them as an object. 
+coronavirus |>
   filter(type == "confirmed") |>
   group_by(country) |>
   summarize(total = sum(cases)) |>
   arrange(-total) |>
   head(5) |>
-  pull(country) # Make sure you're only saving the country NAMES.
+  pull(country) # Make sure you're only saving the country names.
 
-# To be continued on 9/25! 
+# Then, use that information to make a ggplot.
+coronavirus |>
+  filter(type == "confirmed", country %in% top5_countries, cases >= 0) |>
+  group_by(date, country) |>
+  summarize(total = sum(cases)) |>
+  ggplot() + 
+  geom_line(mapping = aes(x = date, y = total, color = country)) + 
+  facet_wrap(~country) # Could add nrow = or ncol = to customize.
+# You could also delete the legend because it is redundant.
 ```
 
 
