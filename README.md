@@ -35,3 +35,5 @@ Assignment 4: My assignment has been uploaded to the problem_sets folder in my c
 Assignment 5: My assignment has been uploaded to the problem_sets folder in my course repo!
 
 Assignment 6: My assignment has been uploaded to the problem_sets folder in my course repo!
+
+Assignment 7: My assignment has been uploaded to the problem_sets folder in my course repo!
