@@ -1,0 +1,127 @@
+---
+title: "factors"
+author: "Trisha Bhujle"
+date: "2025-10-08"
+output: html_document
+---
+
+```{r} 
+library(tidyverse)
+```
+
+Introduce factors.
+```{r} 
+# Create a character vector that is not a factor.
+x1 <- c("Dec", "Apr", "Jan", "Mar")
+sort(x1) # Will sort your characters alphabetically, but that may be meaningless
+
+# Insert the possible levels that a month could take.
+month_levels <- c(
+  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+)
+
+# Create a factor vector so that you're no longer dealing with meaningless characters.
+y1 <- factor(x1, levels = month_levels)
+sort(y1) # Now y1 is being sorted in the way you want it to be sorted...by ORDER of the months!
+```
+
+
+```{r} 
+library(gapminder)
+# install.packages("gridExtra")
+library(gridExtra)
+```
+
+Practice factors in plotting.
+```{r}
+View(gapminder)
+
+str(gapminder$continent)
+levels(gapminder$continent) # what the levels are
+nlevels(gapminder$continent) # number of levels
+# Continent is a factor with 5 levels.
+
+# Find the number of values for each continent.
+gapminder |>
+  count(continent)
+
+nlevels(gapminder$country)
+
+# Let's say we're interested in 5 specific countries. We can subset the gapminder dataframe to only include data for these countries.
+h_countries <- c("Egypt", "Haiti", "Romania", "Thailand", "Venezuela")
+h_gap <- gapminder |>
+  filter(country %in% h_countries)
+
+# To confirm you selected out those 5 countries...
+h_gap |>
+  count(country)
+nlevels(h_gap$country)
+
+h_gap_dropped <- h_gap |>
+  droplevels()
+nlevels(h_gap_dropped$country)
+
+h_gap$country |>
+  fct_drop()
+```
+
+PRACTICE: Filter the gapminder data down to rows where population is less than 250000. Get rid of the unused factor levels for country and continent in different ways.
+```{r} 
+low_pop <- gapminder |>
+  filter(pop < 250000) |>
+  droplevels() # droplevels is the easiest way! Filtering does NOT automatically drop the remaining levels!
+
+low_pop <- gapminder |>
+  filter(pop < 250000) |>
+  mutate(country = fct_drop(country))
+
+low_pop |>
+  count(country)
+nlevels(low_pop$country)
+```
+
+
+Practice sorting levels.
+```{r} 
+# find the number of occurrences for each continent. 
+Gapminder |>
+  count(continent)
+
+# Order the levels based on their frequency from highest to lowest.
+gapminder$continent |>
+  fct_infreq() |>
+  levels()
+
+# Order the levels based on their frequency from lowest to highest.
+gapminder$continent |>
+  fct_infreq() |>
+  fct_rev() |>
+  levels()
+
+p1 <- gapminder |>
+  ggplot(aes(x = continent)) + 
+  geom_bar() + 
+  coord_flip()
+
+# Reorder the levels of the continents in ggplot.
+p2 <- gapminder |>
+  ggplot(aes(x = fct_infreq(continent))) + 
+  geom_bar() + 
+  coord_flip()
+
+gap_asia_2007 <- gapminder |>
+  filter(year == 2007, continent == "Asia")
+
+gap_asia_2007 |>
+  ggplot(aes(x = lifeExp, y = country)) + 
+  geom_point()
+
+# Reorder country by the values of life expectancy to make the information more meaningful..
+gap_asia_2007 |>
+  ggplot(aes(x = lifeExp, y = fct_reorder(country, lifeExp))) + 
+  geom_point()
+```
+
+***Chapter 10 on stats545.com is SUPER helpful!***
+

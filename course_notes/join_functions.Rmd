@@ -1,0 +1,162 @@
+---
+title: "join_functions"
+author: "Trisha Bhujle"
+date: "2025-10-02"
+output: html_document
+---
+
+```{r}
+# install.packages("nycflights13")
+library(tidyverse)
+library(nycflights13)
+```
+
+## Row Binding
+
+Import the Lord of the Rings dataset.
+
+```{r}
+fship <- read_csv("https://raw.githubusercontent.com/jennybc/lotr-tidy/master/data/The_Fellowship_Of_The_Ring.csv")
+
+ttow <- read_csv("https://raw.githubusercontent.com/jennybc/lotr-tidy/master/data/The_Two_Towers.csv")
+
+rking <- read_csv("https://raw.githubusercontent.com/jennybc/lotr-tidy/master/data/The_Return_Of_The_King.csv")
+```
+
+Create a new dataframe called lotr with the other three dataframes combined.
+
+```{r}
+lotr <- bind_rows(fship, ttow, rking)
+```
+
+Remove females from the fship dataset. What happens if you try to bind the three dataframes together? You'll see that it still WORKS, but now you'll get "NA" values for the Female column for fship.
+
+```{r}
+fship_no_female <- fship |>
+  select(-Female)
+
+bind_rows(fship_no_female, ttow, rking)
+```
+
+Reshuffle the column in the fship_no_female dataset. What happens if you try to bind the three dataframes together? You'll see that it still WORKS, but the order of the columns has changed.
+
+```{r}
+fship_no_female <- fship |>
+  select(Male, Film, Race)
+
+bind_rows(fship_no_female, ttow, rking)
+
+# You can also change the order of the columns this way: 
+bind_rows(ttow, rking, fship_no_female)
+```
+
+There are functions to bind columns across data frames as well, but that is a VERY bad idea because there's high potential for error! Consider using "mutate" to add new columns if the information to add those columns is in the existing dataframe. If it is in a separate dataframe, use join functions!
+
+## Join Functions
+Import several data frames and examine them
+```{r} 
+flights
+airlines
+airports
+View(planes)
+View(weather)
+
+# Double check that there are no duplicates.
+planes |>
+  count(tailnum) |>
+  filter(n > 1)
+# This tells you that each value for tail number is unique because you get 0 in the resulting tibble.
+
+planes |>
+  count(year) |>
+  tail()
+# This tells you that there are a lot of planes from recent years. 
+
+weather |>
+  count(time_hour)
+# There are 3 obsrvations for each time_hour because you have data from three different airports.
+
+# Count by combinations of time_hour and origin (airport).
+weather |>
+  count(time_hour, origin) |>
+  filter(n > 1)
+# This tells you that each value is unique because you get 0 in the resulting tibble.
+
+# Do we have tail number information for all planes in the data frame? Filter to only include rows with NA values.
+planes |>
+  filter(is.na(tailnum))
+# This tell you there are no NAs for tailnumber in the dataframe.
+```
+
+Practice with left joins.
+```{r} 
+# Create a subset of the flights dataframe called flights2, with a few variables of interest.
+flights2 <- flights |> 
+  select(year:day, hour, origin, dest, tailnum, carrier)
+flights2
+
+# Add a column with the longform version of the airline. This generates a natural join based on a variable (in this case, "carrier") that matched across both flights2 and airlines.This only works if there is ONE variable that is common across both data frames.
+flights2 |>
+  left_join(airlines)
+
+# Add columns with weather information.
+flights2 |>
+  left_join(weather)
+
+# Add columns with planes information, but join solely based on the tailnumber.
+flights2 |>
+  left_join(planes, join_by(tailnum), suffix = c("_flight", "_planes"))
+
+# What if variables have different names across two datasets but have the same information? How do you combine those dataframes? Add the location of the origin airports. 
+flights2 |> 
+  left_join(airports, join_by(origin == faa))
+
+# Now add the latitude and longitude of the origin airports. 
+airports2 <- airports |>
+  select(faa, name, lat, lon)
+
+flights2 |> 
+  left_join(airports2, join_by(origin == faa)) |>
+  left_join(airports2, join_by(dest == faa), 
+            suffix = c("_origin", "_dest"))
+```
+
+Practice with filtering joins (aka semi joins). These are particularly useful when filtering with combinations of different variables.
+```{r} 
+# Filter the airports dataframe to only include airports in the flights dataset.You should only get three rows!
+airports |>
+  semi_join(flights2, join_by(faa == origin))
+```
+
+Practice with anti joins, which retain only records that don't match.
+```{r} 
+# Find flights for airports NOT listed in the airports dataframe.
+flights2 |>
+  anti_join(airports, join_by(dest == faa)) |>
+  distinct(dest)
+# Distinct is another option instead of count(dest). 
+```
+
+
+PRACTICE: Filter flights to only show flights with planes that have flown at least 100 flights. Hint: you will need to first use summarize() or count()
+```{r} 
+planes_gt100 <- flights2 |>
+  group_by(tailnum) |>
+  summarize(count = n()) |>
+  filter(count > 100) 
+planes_gt100
+
+# Or use the count function, which can replace group_by and summarize. 
+planes_gt100 <- flights2 |>
+  count(tailnum) |>
+  filter(n > 100) 
+planes_gt100
+
+# Now actually figure out the flights aspect by combining that with the planes_gt100 dataset.
+flights |>
+  semi_join(planes_gt100)
+```
+
+
+
+
